@@ -317,3 +317,10 @@ Replace the `ul` with the `navbar` component
   </:left_actions>
 </.navbar>
 ```
+
+
+The app's home page should look like this:
+
+<img width="1512" alt="Screenshot 2024-01-18 at 5 44 01 PM" src="https://github.com/ranuzz/phoenix-elixir-starter/assets/1070398/fdb9dbed-bf05-490f-b6e8-d7511ed37d89">
+
+use daisyUI theme/component and tailwind to improve further
