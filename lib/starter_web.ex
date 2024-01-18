@@ -85,6 +85,7 @@ defmodule StarterWeb do
       import Phoenix.HTML
       # Core UI components and translation
       import StarterWeb.CoreComponents
+      import StarterWeb.LibraryComponents
       import StarterWeb.Gettext
 
       # Shortcut for generating JS commands

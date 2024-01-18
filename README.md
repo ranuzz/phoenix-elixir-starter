@@ -51,7 +51,7 @@ run phoenix app and verify that everything is working `mix ecto.create`
 
 [localhost](http://localhost:4000/)
 
-## [step 1 ] Add auth
+## [Step 1] Add auth
 
 Generate `Account` context and `users` table along with auth code.
 
@@ -74,7 +74,7 @@ This includes routes, pages and logic to
 - login user
 - changing email and password
 
-## [step 2] UUID as id
+## [Step 2] UUID as id
 
 change the migration file `priv/repo/migrations/<>_name.exs` to remove default integer `id` primary key and add `id` column that is of type `uuid`
 
@@ -166,23 +166,154 @@ SELECT u0."id", u0."email", u0."hashed_password", u0."confirmed_at", u0."inserte
 ]
 ```
 
-## [step 4] UI changes
+## [Step 4] UI changes
 
 ### Install daisyUI
 
-### Add navbar component
+```
+cd assets
+npm i -D daisyui@latest
+```
 
-### Remove placeholder homepage
+add `daisyui` as plugin in tailwind config `assets/tailwind.config.js`
 
-Edit `lib/starter_web/controllers/page_html/home.html.heex` and replace the content with
+```js
+plugins: [
+  ...,
+  require("daisyui")
+]
+```
+
+### Add app components
+
+create a new component file `lib/starter_web/components/library_components.ex`
+
+```elixir
+defmodule StarterWeb.LibraryComponents do
+  use Phoenix.Component
+
+  slot(:left_actions, default: nil)
+  slot(:middle_actions, default: nil)
+  slot(:right_actions, default: nil)
+
+  def navbar(assigns) do
+    ~H"""
+    <div class="navbar bg-primary min-h-[48px] max-h-[48px]">
+      <div class="navbar-start">
+        <img alt="starter logo" src="/images/logo.svg" class="w-[48px] h-[48px]" />
+        <%= render_slot(@right_actions) %>
+      </div>
+      <div class="navbar-center">
+        <%= render_slot(@middle_actions) %>
+      </div>
+      <div class="navbar-end">
+        <%= render_slot(@left_actions) %>
+      </div>
+    </div>
+    """
+  end
+
+  slot(:inner_block, required: true)
+
+  def content_placeholder(assigns) do
+    ~H"""
+    <div class="hero">
+      <div class="hero-content text-center">
+        <%= render_slot(@inner_block) %>
+      </div>
+    </div>
+    """
+  end
+end
+
+```
+
+register the components
+
+`lib/starter_web.ex`
+
+```elixir
+  defp html_helpers do
+    quote do
+      # HTML escaping functionality
+      import Phoenix.HTML
+      # Core UI components and translation
+      import StarterWeb.CoreComponents
+      import StarterWeb.LibraryComponents
+      import StarterWeb.Gettext
+```
+
+### Update existing templates
+
+`lib/starter_web/components/layouts/app.html.heex`
+
+```html
+<main class="px-4 py-20 sm:px-6 lg:px-8">
+  <div class="mx-auto"><%= @inner_content %></div>
+</main>
+```
+
+`lib/starter_web/controllers/page_html/home.html.heex`
 
 ```html
 <.flash_group flash={@flash} />
-<div>Home Page</div>
+<.content_placeholder>
+    <div>Home Page</div>
+</.content_placeholder>
 ```
 
-The app should now have auth and a blank home page
+Add navbar to root template
 
-<img width="1510" alt="image" src="https://github.com/ranuzz/phoenix-elixir-starter/assets/1070398/149b7b03-25b0-4b80-988b-ba4199b789fb">
+`lib/starter_web/components/layouts/root.html.heex`
 
-### Add placeholder page component
+Replace the `ul` with the `navbar` component
+
+```html
+<.navbar>
+  <:right_actions>
+  </:right_actions>
+  <:middle_actions>
+  </:middle_actions>
+  <:left_actions>
+    <%= if @current_user do %>
+      <li class="text-[0.8125rem] leading-6 text-zinc-900">
+        <%= @current_user.email %>
+      </li>
+      <li>
+        <.link
+          href={~p"/users/settings"}
+          class="text-[0.8125rem] leading-6 text-zinc-900 font-semibold hover:text-zinc-700"
+        >
+          Settings
+        </.link>
+      </li>
+      <li>
+        <.link
+          href={~p"/users/log_out"}
+          method="delete"
+          class="text-[0.8125rem] leading-6 text-zinc-900 font-semibold hover:text-zinc-700"
+        >
+          Log out
+        </.link>
+      </li>
+    <% else %>
+      <li>
+        <.link
+          href={~p"/users/register"}
+          class="text-[0.8125rem] leading-6 text-zinc-900 font-semibold hover:text-zinc-700"
+        >
+          Register
+        </.link>
+      </li>
+      <li>
+        <.link
+          href={~p"/users/log_in"}
+          class="text-[0.8125rem] leading-6 text-zinc-900 font-semibold hover:text-zinc-700"
+        >
+          Log in
+        </.link>
+      </li>
+    <% end %>
+  </:left_actions>
+</.navbar>
+```
