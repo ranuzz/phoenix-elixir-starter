@@ -172,6 +172,7 @@ SELECT u0."id", u0."email", u0."hashed_password", u0."confirmed_at", u0."inserte
 
 ```
 cd assets
+npm init # accept all default options
 npm i -D daisyui@latest
 ```
 
@@ -318,9 +319,35 @@ Replace the `ul` with the `navbar` component
 </.navbar>
 ```
 
-
 The app's home page should look like this:
 
 <img width="1512" alt="Screenshot 2024-01-18 at 5 44 01 PM" src="https://github.com/ranuzz/phoenix-elixir-starter/assets/1070398/fdb9dbed-bf05-490f-b6e8-d7511ed37d89">
 
 use daisyUI theme/component and tailwind to improve further
+
+## [Step 5] Deploy using fly.io
+
+fly.io supports phoenix application out-of-the-box so just follow the lates documentation
+
+> https://fly.io/docs/elixir/getting-started/
+
+The docker image build might fail. This happens if you have node_modules installed in `assets`, like `daisyUI` in this template.
+
+To fix add following lines in your fly generated `Dockerfile` and run `fly deploy`
+
+after `# install build dependencies` step
+
+```dockerfile
+# node and npm for assets
+RUN apt-get update && apt-get install -y nodejs
+RUN apt-get update && apt-get install npm -y
+```
+
+afetr `COPY assets assets` step
+
+```dockerfile
+# compile assets npm packages
+RUN npm --prefix ./assets ci --progress=false --no-audit --loglevel=error
+```
+
+The sample is not included in this repo.
